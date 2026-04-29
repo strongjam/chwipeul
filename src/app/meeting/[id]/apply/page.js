@@ -2,7 +2,7 @@
 
 import { useState, use } from "react";
 import Link from "next/link";
-import { ChevronLeft, MessageCircle, Phone, Info, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, MessageCircle, Phone, Info, CheckCircle2, Home as HomeIcon, MapPin, Users } from "lucide-react";
 import { MOCK_MEETINGS } from "../../../data";
 
 export default function ApplyPage({ params: paramsPromise }) {
@@ -25,26 +25,57 @@ export default function ApplyPage({ params: paramsPromise }) {
   // 신청 완료 화면
   if (isSubmitted) {
     return (
-      <main className="min-h-screen bg-white flex flex-col items-center justify-center px-6 text-center">
-        <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mb-6 animate-bounce">
-          <CheckCircle2 className="w-10 h-10 text-main-orange" />
+      <main className="min-h-screen bg-white">
+        {/* Header */}
+        <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
+          <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-center relative">
+            <Link href="/" className="absolute left-4 p-1 hover:bg-gray-100 rounded-full transition-smooth">
+              <ChevronLeft className="w-6 h-6 text-gray-800" />
+            </Link>
+          </div>
+        </header>
+
+        <div className="flex flex-col items-center justify-center px-6 text-center pt-20 pb-32">
+          <div className="w-24 h-24 bg-orange-50 rounded-full flex items-center justify-center mb-8 animate-bounce shadow-inner">
+            <CheckCircle2 className="w-12 h-12 text-main-orange" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">신청서가 전달되었습니다!</h2>
+          <p className="text-gray-500 mb-12 leading-relaxed max-w-[280px]">
+            {meeting.author.name} 호스트님께 신청서가 전달되었어요.<br />
+            <span className="font-bold text-gray-800">호스트의 승인을 잠시만 기다려주세요.</span>
+          </p>
+          <div className="w-full space-y-4 max-w-xs">
+            <Link 
+              href="/"
+              className="block w-full bg-main-orange text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-100 transition-smooth hover:scale-[1.02]"
+            >
+              다른 취미 더 찾아보기
+            </Link>
+            <button className="block w-full py-4 text-gray-400 font-bold text-sm hover:text-gray-600 transition-smooth">
+              신청 내역 확인하기
+            </button>
+          </div>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">신청서가 전달되었습니다!</h2>
-        <p className="text-gray-500 mb-10 leading-relaxed">
-          {meeting.author.name} 호스트님께 메시지를 보냈어요.<br />
-          <span className="font-bold text-gray-800">호스트의 승인을 기다려주세요.</span>
-        </p>
-        <div className="w-full space-y-3 max-w-xs">
-          <Link 
-            href="/"
-            className="block w-full bg-main-orange text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-100 transition-smooth"
-          >
-            다른 취미 더 찾아보기
+
+        {/* Footer Nav (Mobile Style) */}
+        <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-gray-100 px-8 py-4 flex justify-between items-center max-w-md mx-auto z-50">
+          <Link href="/" className="flex flex-col items-center gap-1 text-gray-400">
+            <HomeIcon className="w-6 h-6" />
+            <span className="text-[10px]">홈</span>
           </Link>
-          <button className="block w-full py-4 text-gray-400 font-medium text-sm">
-            내 신청 현황 보기
+          <button className="flex flex-col items-center gap-1 text-gray-400">
+            <MapPin className="w-6 h-6" />
+            <span className="text-[10px]">내 주변</span>
           </button>
-        </div>
+          <button className="flex flex-col items-center gap-1 text-main-orange">
+            <Users className="w-6 h-6" />
+            <span className="text-[10px] font-bold">내 모임</span>
+          </button>
+          <button className="flex flex-col items-center gap-1 text-gray-400">
+            <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
+            <span className="text-[10px]">프로필</span>
+          </button>
+        </nav>
       </main>
     );
   }
@@ -123,8 +154,13 @@ export default function ApplyPage({ params: paramsPromise }) {
       {/* Bottom Sticky Button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-lg border-t border-gray-100 max-w-md mx-auto z-50">
         <button 
-          onClick={() => setIsSubmitted(true)}
-          className="w-full bg-main-orange text-white py-4 rounded-2xl font-bold shadow-lg shadow-orange-100 hover:scale-[1.02] active:scale-[0.98] transition-smooth cursor-pointer"
+          onClick={() => message.trim() && setIsSubmitted(true)}
+          disabled={!message.trim()}
+          className={`w-full py-4 rounded-2xl font-bold shadow-lg transition-smooth ${
+            message.trim() 
+              ? "bg-main-orange text-white shadow-orange-100 cursor-pointer hover:scale-[1.02] active:scale-[0.98]" 
+              : "bg-gray-200 text-gray-400 cursor-not-allowed"
+          }`}
         >
           신청서 보내기
         </button>
