@@ -8,10 +8,36 @@ import { MOCK_MEETINGS } from "../../../data";
 export default function ApplyPage({ params: paramsPromise }) {
   const params = use(paramsPromise);
   const { id } = params;
-  const meeting = MOCK_MEETINGS.find((m) => m.id === id);
+  const [meeting, setMeeting] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [message, setMessage] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  useEffect(() => {
+    const fetchMeeting = async () => {
+      try {
+        const res = await fetch(`/api/meetings/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setMeeting(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch meeting:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMeeting();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-400">불러오는 중...</p>
+      </div>
+    );
+  }
 
   if (!meeting) {
     return (

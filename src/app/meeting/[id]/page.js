@@ -3,11 +3,20 @@ import { ChevronLeft, Share2, MapPin, Calendar, Users, Info, ShieldCheck } from 
 import { MOCK_MEETINGS } from "../../data";
 
 export default async function MeetingDetail({ params }) {
-  // Next.js 15+ 에서는 params가 Promise이므로 await가 필요합니다.
   const { id } = await params;
-  const meeting = MOCK_MEETINGS.find((m) => m.id === id);
+  
+  let meeting = null;
+  try {
+    // 서버 내부망 또는 공인 도메인을 통해 데이터를 가져옵니다.
+    // 여기서는 클라이언트에서도 접근 가능한 /api 경로를 사용하거나 서버 내부 포트를 사용합니다.
+    const res = await fetch(`http://localhost:8005/meetings/${id}`, { cache: 'no-store' });
+    if (res.ok) {
+      meeting = await res.json();
+    }
+  } catch (error) {
+    console.error("Failed to fetch meeting detail:", error);
+  }
 
-  // 만약 해당하는 모임이 없을 경우에 대한 처리
   if (!meeting) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">

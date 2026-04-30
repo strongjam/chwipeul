@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Search, MapPin, Plus, Users, Calendar, Filter, Home as HomeIcon } from "lucide-react";
 
@@ -8,10 +8,39 @@ import { CATEGORIES, MOCK_MEETINGS } from "./data";
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState("all");
+  const [meetings, setMeetings] = useState([]);
+  const [sortBy, setSortBy] = useState("newest"); // newest, popular
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredMeetings = activeCategory === "all" 
-    ? MOCK_MEETINGS 
-    : MOCK_MEETINGS.filter(meeting => meeting.category === activeCategory);
+  useEffect(() => {
+    fetchMeetings();
+  }, []);
+
+  const fetchMeetings = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/meetings");
+      const data = await response.json();
+      // Combine mock and user data if backend is empty, or just use backend data
+      // For this implementation, we assume backend handles all persistence
+      setMeetings(data);
+    } catch (error) {
+      console.error("Failed to fetch meetings:", error);
+      setMeetings(MOCK_MEETINGS); // Fallback to mock data on error
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredMeetings = (activeCategory === "all" 
+    ? meetings 
+    : meetings.filter(meeting => meeting.category === activeCategory))
+    .sort((a, b) => {
+      if (sortBy === "popular") {
+        return b.members - a.members;
+      }
+      return 0; // Default is newest (handled by backend order)
+    });
 
   return (
     <main className="min-h-screen bg-gray-50 pb-24">
@@ -67,13 +96,23 @@ export default function Home() {
       <section className="max-w-md mx-auto px-4 mt-8">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-gray-800">추천 취미 모임</h3>
-          <button className="text-sm text-gray-400 flex items-center gap-1 hover:text-gray-600">
-            <Filter className="w-4 h-4" /> 필터
-          </button>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setSortBy(sortBy === "newest" ? "popular" : "newest")}
+              className="text-xs px-3 py-1 bg-white border border-gray-100 rounded-full text-gray-500 flex items-center gap-1 hover:border-orange-200 transition-smooth"
+            >
+              <Filter className="w-3 h-3" />
+              {sortBy === "newest" ? "최신순" : "인기순"}
+            </button>
+          </div>
         </div>
 
         <div className="space-y-4">
-          {filteredMeetings.length > 0 ? (
+          {isLoading ? (
+            <div className="py-20 text-center animate-pulse">
+              <p className="text-gray-400 text-sm">로딩 중...</p>
+            </div>
+          ) : filteredMeetings.length > 0 ? (
             filteredMeetings.map((meeting) => (
               <Link 
                 key={meeting.id} 
@@ -87,7 +126,7 @@ export default function Home() {
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
                 <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-medium">
-                  {CATEGORIES.find(c => c.id === meeting.category)?.name}
+                  {CATEGORIES.find(c => c.id === meeting.category)?.name || meeting.categoryName}
                 </div>
               </div>
               <div className="p-5">
@@ -121,9 +160,12 @@ export default function Home() {
       </section>
 
       {/* Floating Action Button */}
-      <button className="fixed bottom-8 right-8 w-14 h-14 bg-main-orange text-white rounded-full flex items-center justify-center shadow-xl shadow-orange-200 hover:scale-110 active:scale-95 transition-transform z-50">
+      <Link 
+        href="/meeting/create"
+        className="fixed bottom-24 right-6 w-14 h-14 bg-main-orange text-white rounded-full flex items-center justify-center shadow-xl shadow-orange-200 hover:scale-110 active:scale-95 transition-transform z-50 cursor-pointer"
+      >
         <Plus className="w-8 h-8" />
-      </button>
+      </Link>
 
       {/* Footer Nav (Mobile Style) */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-gray-100 px-8 py-4 flex justify-between items-center max-w-md mx-auto z-50">
